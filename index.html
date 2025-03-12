@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek-V3 - 先进的混合专家大语言模型</title>
+    <!-- TailwindCSS 通过 CDN 引入 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- 自定义脚本 -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            950: '#082f49',
+                        },
+                        secondary: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            200: '#fde68a',
+                            300: '#fcd34d',
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                            800: '#92400e',
+                            900: '#78350f',
+                            950: '#451a03',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 2px 10px rgba(0, 0, 0, 0.05)',
+                        'card-hover': '0 4px 20px rgba(0, 0, 0, 0.1)',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.6s ease-in-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        }
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* 确保平滑滚动 */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* 微交互效果 */
+        .btn-hover {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-hover:hover {
+            transform: scale(1.03);
+        }
+        .card-hover {
+            transition: all 0.3s ease-in-out;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+        
+        /* 表格滚动 */
+        .table-container {
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+        
+        /* 图像淡入效果 */
+        .image-fade-in {
+            opacity: 0;
+            animation: fadeIn 0.6s ease-in-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* 深色模式默认字体颜色 */
+        .dark {
+            color-scheme: dark;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-200">
+    <!-- 导航栏 -->
+    <nav class="sticky top-0 z-50 backdrop-blur-md bg-white/90 dark:bg-gray-900/90 shadow-sm border-b border-gray-200 dark:border-gray-800">
+        <div class="container mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <img src="https://github.com/deepseek-ai/DeepSeek-V2/blob/main/figures/logo.svg?raw=true" alt="DeepSeek Logo" class="h-8 md:h-10" />
+                <span class="text-lg md:text-xl font-semibold">DeepSeek-V3</span>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <a href="#intro" class="hidden md:block hover:text-primary-600 dark:hover:text-primary-400">简介</a>
+                <a href="#model-summary" class="hidden md:block hover:text-primary-600 dark:hover:text-primary-400">模型概述</a>
+                <a href="#downloads" class="hidden md:block hover:text-primary-600 dark:hover:text-primary-400">下载</a>
+                <a href="#eval-results" class="hidden md:block hover:text-primary-600 dark:hover:text-primary-400">评估结果</a>
+                <a href="#run-locally" class="hidden md:block hover:text-primary-600 dark:hover:text-primary-400">本地运行</a>
+                
+                <button id="mobile-menu-btn" class="md:hidden btn-hover">
+                    <i class="fas fa-bars text-lg"></i>
+                </button>
+                
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 btn-hover" aria-label="切换深色/浅色模式">
+                    <i class="fas fa-moon dark:hidden text-gray-700"></i>
+                    <i class="fas fa-sun hidden dark:block text-yellow-300"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white dark:bg-gray-900 shadow-md">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                <a href="#intro" class="hover:text-primary-600 dark:hover:text-primary-400">简介</a>
+                <a href="#model-summary" class="hover:text-primary-600 dark:hover:text-primary-400">模型概述</a>
+                <a href="#downloads" class="hover:text-primary-600 dark:hover:text-primary-400">下载</a>
+                <a href="#eval-results" class="hover:text-primary-600 dark:hover:text-primary-400">评估结果</a>
+                <a href="#run-locally" class="hover:text-primary-600 dark:hover:text-primary-400">本地运行</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 md:px-6 py-8 max-w-7xl">
+        <!-- 顶部横幅 -->
+        <header class="flex flex-col items-center justify-center mb-12 text-center animate-fade-in">
+            <img src="https://github.com/deepseek-ai/DeepSeek-V2/blob/main/figures/logo.svg?raw=true" alt="DeepSeek-V3 Logo" class="w-1/2 md:w-3/5 max-w-3xl mb-8" />
+            
+            <div class="flex flex-wrap justify-center gap-2 md:gap-3 mb-6">
+                <a href="https://www.deepseek.com/" target="_blank" class="inline-flex items-center px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-sm btn-hover">
+                    <i class="fas fa-home mr-2"></i>官方主页
+                </a>
+                <a href="https://chat.deepseek.com/\" target="_blank" class="inline-flex items-center px-3 py-1.5 rounded-full bg-primary-100 hover:bg-primary-200 dark:bg-primary-900 dark:hover:bg-primary-800 text-primary-800 dark:text-primary-200 text-sm btn-hover">
+                    <i class="fas fa-robot mr-2"></i>DeepSeek V3 对话
+                </a>
+                <a href="https://huggingface.co/deepseek-ai\" target="_blank" class="inline-flex items-center px-3 py-1.5 rounded-full bg-secondary-100 hover:bg-secondary-200 dark:bg-secondary-900 dark:hover:bg-secondary-800 text-secondary-800 dark:text-secondary-200 text-sm btn-hover">
+                    <i class="fas fa-code-branch mr-2"></i>Hugging Face
+                </a>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-2 md:gap-3 mb-6">
+                <a href="https://discord.gg/Tc7c45Zzu5\" target="_blank" class="inline-flex items-center px-3 py-1.5 rounded-full bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900 dark:hover:bg-indigo-800 text-indigo-800 dark:text-indigo-200 text-sm btn-hover">
+                    <i class="fab fa-discord mr-2"></i>Discord
+                </a>
+                <a href="https://github.com/deepseek-ai/DeepSeek-V2/blob/main/figures/qr.jpeg?raw=true\" target="_blank" class="inline-flex items-center px-3 py-1.5 rounded-full bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 text-green-800 dark:text-green-200 text-sm btn-hover">
+                    <i class="fab fa-weixin mr-2"></i>微信公众号
+                </a>
+                <a href="https://twitter.com/deepseek_ai\" target="_blank" class="inline-flex items-center px-3 py-1.5 rounded-full bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-800 dark:text-blue-200 text-sm btn-hover">
+                    <i class="fab fa-twitter mr-2"></i>Twitter
+                </a>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-2 md:gap-3">
+                <a href="https://github.com/deepseek-ai/DeepSeek-V3/blob/main/LICENSE-CODE\" target="_blank" class="inline-flex items-center px-3 py-1.5 rounded-full bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900 dark:hover:bg-yellow-800 text-yellow-800 dark:text-yellow-200 text-sm btn-hover">
+                    <i class="fas fa-file-code mr-2"></i>代码许可证: MIT
+                </a>
+                <a href="https://github.com/deepseek-ai/DeepSeek-V3/blob/main/LICENSE-MODEL\" target="_blank" class="inline-flex items-center px-3 py-1.5 rounded-full bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900 dark:hover:bg-yellow-800 text-yellow-800 dark:text-yellow-200 text-sm btn-hover">
+                    <i class="fas fa-file-alt mr-2"></i>模型许可证: 模型协议
+                </a>
+                <a href="https://github.com/deepseek-ai/DeepSeek-V3/blob/main/DeepSeek_V3.pdf\" target="_blank" class="inline-flex items-center px-3 py-1.5 rounded-full bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-800 dark:text-red-200 text-sm btn-hover">
+                    <i class="fas fa-file-pdf mr-2"></i>论文链接
+                </a>
+            </div>
+        </header>
+
+        <!-- 目录 -->
+        <section class="mb-12 bg-white dark:bg-gray-800 rounded-xl shadow-card p-6 animate-fade-in card-hover">
+            <h2 class="text-2xl font-bold mb-4">目录</h2>
+            <div class="grid sm:grid-cols-2 gap-4">
+                <a href="#intro" class="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 btn-hover">
+                    <span class="bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 w-8 h-8 flex items-center justify-center rounded-full mr-3">1</span>
+                    <span>简介</span>
+                </a>
+                <a href="#model-summary" class="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 btn-hover">
+                    <span class="bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 w-8 h-8 flex items-center justify-center rounded-full mr-3">2</span>
+                    <span>模型概述</span>
+                </a>
+                <a href="#downloads" class="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 btn-hover">
+                    <span class="bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 w-8 h-8 flex items-center justify-center rounded-full mr-3">3</span>
+                    <span>模型下载</span>
+                </a>
+                <a href="#eval-results" class="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 btn-hover">
+                    <span class="bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 w-8 h-8 flex items-center justify-center rounded-full mr-3">4</span>
+                    <span>评估结果</span>
+                </a>
+                <a href="#chat-api" class="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 btn-hover">
+                    <span class="bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 w-8 h-8 flex items-center justify-center rounded-full mr-3">5</span>
+                    <span>对话网站与API平台</span>
+                </a>
+                <a href="#run-locally" class="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 btn-hover">
+                    <span class="bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 w-8 h-8 flex items-center justify-center rounded-full mr-3">6</span>
+                    <span>本地运行</span>
+                </a>
+                <a href="#license" class="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 btn-hover">
+                    <span class="bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 w-8 h-8 flex items-center justify-center rounded-full mr-3">7</span>
+                    <span>许可证</span>
+                </a>
+                <a href="#citation" class="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 btn-hover">
+                    <span class="bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 w-8 h-8 flex items-center justify-center rounded-full mr-3">8</span>
+                    <span>引用</span>
+                </a>
+                <a href="#contact" class="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 btn-hover">
+                    <span class="bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 w-8 h-8 flex items-center justify-center rounded-full mr-3">9</span>
+                    <span>联系我们</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- 简介部分 -->
+        <section id="intro" class="mb-16 scroll-mt-20 animate-fade-in">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-card p-6 md:p-8 card-hover">
+                <h2 class="text-3xl font-bold mb-6 border-b pb-3 border-gray-200 dark:border-gray-700">
+                    <i class="fas fa-info-circle text-primary-600 dark:text-primary-400 mr-2"></i>简介
+                </h2>
+                
+                <div class="prose dark:prose-invert max-w-none">
+                    <p class="mb-4 text-lg">我们隆重推出 DeepSeek-V3，这是一个强大的混合专家（Mixture-of-Experts，MoE）大语言模型，总计包含6710亿参数，每个词元激活370亿参数。</p>
+                    
+                    <p class="mb-4">为实现高效推理和训练成本效益，DeepSeek-V3采用了多头潜在注意力（Multi-head Latent Attention，MLA）和DeepSeekMoE架构，这些技术在DeepSeek-V2中已得到充分验证。</p>
+                    
+                    <p class="mb-4">此外，DeepSeek-V3首创了一种无辅助损失的负载均衡策略，并设定了多词元预测训练目标以提升性能。</p>
+                    
+                    <p class="mb-4">我们在14.8万亿多样化、高质量的词元上进行了DeepSeek-V3的预训练，随后进行了监督微调和强化学习阶段，以充分发挥其能力。</p>
+                    
+                    <p class="mb-4">全面评估显示，DeepSeek-V3优于其他开源模型，并达到了与领先闭源模型相当的性能水平。</p>
+                    
+                    <p class="mb-4">尽管性能出色，DeepSeek-V3的完整训练仅需要2.788百万H800 GPU小时。此外，其训练过程非常稳定，在整个训练过程中，我们没有遇到任何不可恢复的损失波动或进行任何回滚操作。</p>
+                    
+                    <div class="flex justify-center my-8">
+                        <img src="https://github.com/deepseek-ai/DeepSeek-V3/raw/main/figures/benchmark.png" alt="DeepSeek-V3基准测试结果" class="rounded-lg shadow-md w-full max-w-3xl image-fade-in">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 模型概述 -->
+        <section id="model-summary" class="mb-16 scroll-mt-20 animate-fade-in">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-card p-6 md:p-8 card-hover">
+                <h2 class="text-3xl font-bold mb-6 border-b pb-3 border-gray-200 dark:border-gray-700">
+                    <i class="fas fa-clipboard-list text-primary-600 dark:text-primary-400 mr-2"></i>模型概述
+                </h2>
+                
+                <div class="grid md:grid-cols-1 gap-6">
+                    <!-- 架构部分 -->
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fas fa-layer-group text-secondary-600 dark:text-secondary-400 mr-2"></i>
+                            架构：创新的负载均衡策略和训练目标
+                        </h3>
+                        <div class="pl-5 border-l-2 border-secondary-200 dark:border-secondary-800">
+                            <p class="mb-3">基于DeepSeek-V2的高效架构，我们首创了无辅助损失的负载均衡策略，最小化了鼓励负载均衡所带来的性能下降。</p>
+                            <p>我们研究了多词元预测（Multi-Token Prediction，MTP）目标，并证明它对模型性能有益。它还可用于推理加速的推测解码。</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 预训练部分 -->
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fas fa-rocket text-secondary-600 dark:text-secondary-400 mr-2"></i>
+                            预训练：追求极致训练效率
+                        </h3>
+                        <div class="pl-5 border-l-2 border-secondary-200 dark:border-secondary-800">
+                            <p class="mb-3">我们设计了FP8混合精度训练框架，首次验证了FP8训练在超大规模模型上的可行性和有效性。</p>
+                            <p class="mb-3">通过算法、框架和硬件的协同设计，我们克服了跨节点MoE训练中的通信瓶颈，几乎实现了完全的计算-通信重叠。这显著提高了我们的训练效率并降低了训练成本，使我们能够进一步扩大模型规模而不增加额外开销。</p>
+                            <p>仅以2.664百万H800 GPU小时的经济成本，我们在14.8万亿词元上完成了DeepSeek-V3的预训练，产生了目前最强大的开源基础模型。预训练后的后续训练阶段仅需0.1百万GPU小时。</p>
+                        </div>\n                    </div>\n                    \n                    <!-- 后训练部分 -->\n                    <div class=\"bg-gray-50 dark:bg-gray-700 rounded-lg p-6\">\n                        <h3 class=\"text-xl font-semibold mb-4 flex items-center\">\n                            <i class=\"fas fa-brain text-secondary-600 dark:text-secondary-400 mr-2\"></i>\n                            后训练：从DeepSeek-R1知识蒸馏\n                        </h3>\n                        <div class=\"pl-5 border-l-2 border-secondary-200 dark:border-secondary-800\">\n                            <p>我们引入了一种创新方法，将长思维链（Chain-of-Thought，CoT）模型的推理能力，特别是来自DeepSeek R1系列模型之一的能力，蒸馏到标准的大语言模型中，特别是DeepSeek-V3。我们的流程优雅地将R1的验证和反思模式整合到DeepSeek-V3中，显著提升了其推理性能。同时，我们还对DeepSeek-V3的输出风格和长度保持了控制。</p>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        </section>\n\n        <!-- 模型下载 -->\n        <section id=\"downloads\" class=\"mb-16 scroll-mt-20 animate-fade-in\">\n            <div class=\"bg-white dark:bg-gray-800 rounded-xl shadow-card p-6 md:p-8 card-hover\">\n                <h2 class=\"text-3xl font-bold mb-6 border-b pb-3 border-gray-200 dark:border-gray-700\">\n                    <i class=\"fas fa-download text-primary-600 dark:text-primary-400 mr-2\"></i>模型下载\n                </h2>\n                \n                <div class=\"overflow-x-auto table-container\">\n                    <table class=\"min-w-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden\">\n                        <thead>\n                            <tr class=\"bg-gray-100 dark:bg-gray-700\">\n                                <th class=\"py-3 px-4 text-left font-semibold border-b border-gray-200 dark:border-gray-600\">模型</th>\n                                <th class=\"py-3 px-4 text-left font-semibold border-b border-gray-200 dark:border-gray-600\">总参数量</th>\n                                <th class=\"py-3 px-4 text-left font-semibold border-b border-gray-200 dark:border-gray-600\">激活参数量</th>\n                                <th class=\"py-3 px-4 text-left font-semibold border-b border-gray-200 dark:border-gray-600\">上下文长度</th>\n                                <th class=\"py-3 px-4 text-left font-semibold border-b border-gray-200 dark:border-gray-600\">下载</th>\n                            </tr>\n                        </thead>\n                        <tbody>\n                            <tr class=\"hover:bg-gray-50 dark:hover:bg-gray-750\">\n                                <td class=\"py-3 px-4 border-b border-gray-200 dark:border-gray-600\">\n                                    <a href=\"https://huggingface.co/deepseek-ai/DeepSeek-V3\" target=\"_blank\" class=\"inline-flex items-center text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 btn-hover\">\n                                        <i class=\"fas fa-external-link-alt mr-1\"></i> Hugging Face\n                                    </a>\n                                </td>\n                            </tr>\n                        </tbody>\n                    </table>\n                </div>\n                \n                <div class=\"mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg\">\n                    <p class=\"mb-3 flex items-start\">\n                        <i class=\"fas fa-info-circle text-blue-500 mt-1 mr-2\"></i>\n                        <span>DeepSeek-V3 模型在 Hugging Face 上的总大小为 685B，其中包括 671B 的主模型权重和 14B 的多词元预测（MTP）模块权重。</span>\n                    </p>\n                    <p>为确保最佳性能和灵活性，我们已与开源社区和硬件供应商合作，提供多种本地运行模型的方式。有关分步指导，请查看第 6 节：<a href=\"#run-locally\" class=\"text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300\">本地运行</a>。</p>\n                </div>\n                \n                <div class=\"mt-4\">\n                    <p>对于希望深入了解的开发者，我们建议探索 <a href=\"https://github.com/deepseek-ai/DeepSeek-V3/blob/main/README_WEIGHTS.md\" target=\"_blank\" class=\"text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300\">README_WEIGHTS.md</a> 以了解主模型权重和多词元预测（MTP）模块的详细信息。请注意，MTP 支持目前正在社区内积极开发中，我们欢迎您的贡献和反馈。</p>\n                </div>\n            </div>\n        </section>\n\n        <!-- 评估结果 -->\n        <section id=\"eval-results\" class=\"mb-16 scroll-mt-20 animate-fade-in\">\n            <div class=\"bg-white dark:bg-gray-800 rounded-xl shadow-card p-6 md:p-8 card-hover\">\n                <h2 class=\"text-3xl font-bold mb-6 border-b pb-3 border-gray-200 dark:border-gray-700\">\n                    <i class=\"fas fa-chart-bar text-primary-600 dark:text-primary-400 mr-2\"></i>评估结果\n                </h2>\n                \n                <!-- 标签页切换 -->\n                <div class=\"mb-6\">\n                    <div class=\"flex flex-wrap border-b border-gray-200 dark:border-gray-700\">\n                        <button id=\"tab-base\" class=\"tab-btn px-4 py-3 focus:outline-none border-b-2 border-primary-500 dark:border-primary-400 font-medium text-primary-600 dark:text-primary-400\">基础模型</button>\n                        <button id=\"tab-chat\" class=\"tab-btn px-4 py-3 focus:outline-none border-b-2 border-transparent font-medium text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400\">对话模型</button>\n                    </div>\n                </div>\n                \n                <!-- 基础模型评估结果 -->\n                <div id=\"content-base\" class=\"tab-content\">\n                    <h3 class=\"text-xl font-semibold mb-4\">标准基准测试</h3>\n                    \n                    <div class=\"overflow-x-auto table-container mb-8\">\n                        <table class=\"min-w-full border border-gray-200 dark:border-gray-700 text-sm\">\n                            <thead>\n                                <tr class=\"bg-gray-100 dark:bg-gray-700\">\n                                    <th class=\"py-2 px-3 text-left border-b border-gray-200 dark:border-gray-600\"></th>\n                                    <th class=\"py-2 px-3 text-left border-b border-gray-200 dark:border-gray-600\">基准测试 (指标)</th>\n                                    <th class=\"py-2 px-3 text-left border-b border-gray-200 dark:border-gray-600\"># Shots</th>\n                                    <th class=\"py-2 px-3 text-left border-b border-gray-200 dark:border-gray-600\">DeepSeek-V2</th>\n                                    <th class=\"py-2 px-3 text-left border-b border-gray-200 dark:border-gray-600\">Qwen2.5 72B</th>\n                                    <th class=\"py-2 px-3 text-left border-b border-gray-200 dark:border-gray-600\">LLaMA3.1 405B</th>\n                                    <th class=\"py-2 px-3 text-left border-b border-gray-200 dark:border-gray-600\">DeepSeek-V3</th>\n                                </tr>\n                                <tr class=\"bg-gray-50 dark:bg-gray-750\">\n                                    <th class=\"py-2 px-3 text-left border-b border-gray-200 dark:border-gray-600\"></th>\n                                    <th class=\"py-2 px-3 text-left border-b border-gray-200 dark:border-gray-600\">架构</th>\n                                    <th class=\"py-2 px-3 text-left border-b border-gray-200 dark:border-gray-600\">-</th>\n
