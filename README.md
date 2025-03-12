@@ -1,6 +1,8 @@
 This repository contains a webpage showcasing DeepSeek-V3, a powerful mixture-of-experts (MoE) large language model.
+https://aliceljy.github.io/DS-V3-info/
 
-promts
+
+PROMTS
 
 请将 https://github.com/deepseek-ai/DeepSeek-V3 read.me的内容类型（文档、数据、图片等），按下面要求将其转化为美观漂亮的中文可视化网页。
 
