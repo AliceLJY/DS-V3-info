@@ -1,3 +1,5 @@
+> **[Archived]** This repository is no longer maintained and is kept for history only.
+
 # DeepSeek-V3 多专家混合语言模型信息展示
 
 ## 项目介绍
